@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Last Z – Tools & Guides</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Arial', sans-serif; background: #0D0D0D; color: #eee; min-height: 100vh; padding: 32px 16px; }
+
+  header { text-align: center; margin-bottom: 40px; }
+  header h1 { font-size: 28px; color: #00FFFF; letter-spacing: 3px; text-transform: uppercase; }
+  header p { color: #666; font-size: 13px; margin-top: 6px; letter-spacing: 1px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
+
+  .card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 24px 20px;
+    text-decoration: none;
+    color: #eee;
+    transition: border-color 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card:hover { border-color: #00FFFF; transform: translateY(-3px); }
+
+  .card-icon { font-size: 28px; }
+  .card-title { font-size: 16px; font-weight: bold; color: #00FFFF; }
+  .card-desc { font-size: 12px; color: #888; line-height: 1.5; }
+  .card-tag {
+    display: inline-block;
+    font-size: 10px;
+    background: #FF8C0022;
+    color: #FF8C00;
+    border: 1px solid #FF8C0055;
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-top: 4px;
+    width: fit-content;
+  }
+
+  .section-label {
+    max-width: 900px;
+    margin: 0 auto 12px auto;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #444;
+  }
+
+  footer { text-align: center; margin-top: 48px; font-size: 11px; color: #333; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚔ Last Z — Tools & Guides</h1>
+  <p>Community reference · Not affiliated with Florere Game Limited</p>
+</header>
+
+<p class="section-label">📊 Data Tables</p>
+<div class="grid">
+
+  <a class="card" href="hero_battlefield_power_grid.html">
+    <span class="card-icon">🏟️</span>
+    <span class="card-title">Hero Battlefield — Power Grid</span>
+    <span class="card-desc">Start & End power requirements per level (1–50) for all factions. Blood Rose vs Wings of Dawn / Guard of Order comparison.</span>
+    <span class="card-tag">Levels 1–50</span>
+  </a>
+
+  <!-- Future cards go here -->
+  <div class="card" style="border-style: dashed; opacity: 0.3; cursor: default;">
+    <span class="card-icon">➕</span>
+    <span class="card-title">Coming soon</span>
+    <span class="card-desc">More tables and tools will be added here.</span>
+  </div>
+
+</div>
+
+<footer>Last updated: June 2026 · Data sourced from community screenshots</footer>
+
+</body>
+</html>
