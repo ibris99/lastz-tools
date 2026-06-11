@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Last Z – Talent Simulator</title>
+<title>Last Z – Mastery Hall</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: Arial, sans-serif; background: #0D0D0D; color: #eee; min-height: 100vh; }
@@ -24,13 +24,93 @@ header { background: #0a0a0a; border-bottom: 1px solid #222; padding: 12px 16px;
 .btn-reset { background: #2a1a1a; border: 1px solid #ff4444; color: #ff4444; font-size: 12px; padding: 5px 14px; border-radius: 4px; cursor: pointer; margin-left: auto; }
 .btn-reset:hover { background: #ff4444; color: #fff; }
 
-.tree-tabs { display: flex; gap: 0; border-bottom: 1px solid #222; }
+.tree-tabs { display: flex; border-bottom: 1px solid #222; }
 .tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; cursor: pointer; color: #ffffff; border-bottom: 2px solid transparent; transition: all 0.2s; letter-spacing: 1px; text-transform: uppercase; }
 .tab.active { color: #00FFFF; border-bottom-color: #00FFFF; background: #0f1a1a; }
-.tab:hover:not(.active) { color: #fff; }
 
-.tree-container { padding: 12px 8px 32px; max-width: 500px; margin: 0 auto; }
-.tier { margin-bottom: 8px; }
+/* MAIN LAYOUT */
+.main-layout { display: flex; gap: 0; max-width: 900px; margin: 0 auto; }
+
+/* TREE PANEL */
+.tree-panel { flex: 1; min-width: 0; }
+.tree-container { padding: 12px 8px 32px; position: relative; }
+
+/* SEASON DIVIDER */
+.season-divider {
+  position: relative;
+  margin: 16px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.season-divider::before {
+  content: '';
+  flex: 1;
+  border-top: 2px dashed #333;
+}
+.season-divider::after {
+  content: '';
+  flex: 1;
+  border-top: 2px dashed #333;
+}
+.season-badge {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.season-badge.s2 { color: #aaa; background: #1a1a1a; border: 1px solid #333; }
+.season-badge.s3 { color: #00FFFF; background: #0a1a1a; border: 1px solid #00FFFF44; }
+.season-badge.s4 { color: #FF8C00; background: #1a1200; border: 1px solid #FF8C0044; }
+
+/* SEASON UNLOCK ROW */
+.season-unlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s;
+}
+.season-unlock:hover { border-color: #444; }
+.season-unlock.unlocked { border-color: #00FFFF44; background: #0a1515; }
+.season-unlock input[type=checkbox] { accent-color: #00FFFF; width: 16px; height: 16px; cursor: pointer; }
+.season-unlock-label { font-size: 12px; color: #aaa; }
+.season-unlock.unlocked .season-unlock-label { color: #00FFFF; }
+.season-unlock-sub { font-size: 10px; color: #555; margin-left: auto; }
+.season-unlock.coming { opacity: 0.4; cursor: not-allowed; }
+
+/* WATERMARK LABEL - vertical on left */
+.season-watermark {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 32px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  opacity: 0.06;
+  pointer-events: none;
+  position: absolute;
+  left: -2px;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+}
+.wm-s2 { color: #aaa; }
+.wm-s3 { color: #00FFFF; }
+.wm-s4 { color: #FF8C00; }
+
+.tier { margin-bottom: 8px; position: relative; }
 .tier-label { font-size: 11px; color: #FF8C00; letter-spacing: 2px; margin-bottom: 6px; padding-left: 4px; }
 .tier-nodes { display: flex; gap: 8px; justify-content: center; }
 .tier-nodes.single { justify-content: center; }
@@ -43,13 +123,13 @@ header { background: #0a0a0a; border-bottom: 1px solid #222; padding: 12px 16px;
   padding: 10px 8px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
-  position: relative;
   user-select: none;
 }
 .node:hover { border-color: #444; }
 .node.has-points { border-color: #FF8C00; background: #1f1a0f; }
 .node.maxed { border-color: #00FFFF; background: #0f1f1f; }
-.node.locked { opacity: 0.45; cursor: not-allowed; }
+.node.locked { opacity: 0.35; cursor: not-allowed; filter: grayscale(0.5); }
+.node.season-locked { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
 .node.prereq-warn { border-color: #ff4444 !important; animation: pulse 0.3s ease; }
 @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
 
@@ -57,11 +137,11 @@ header { background: #0a0a0a; border-bottom: 1px solid #222; padding: 12px 16px;
 .node-effect { font-size: 10px; color: #888; margin-bottom: 8px; line-height: 1.3; min-height: 24px; }
 .node-rank { display: flex; align-items: center; justify-content: space-between; }
 .rank-dots { display: flex; gap: 3px; flex-wrap: wrap; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: #333; border: 1px solid #444; transition: background 0.1s; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #333; border: 1px solid #444; }
 .dot.filled { background: #FF8C00; border-color: #FF8C00; }
 .node.maxed .dot.filled { background: #00FFFF; border-color: #00FFFF; }
 .rank-label { font-size: 10px; color: #666; }
-.node.has-points .rank-label, .node.maxed .rank-label { color: #FF8C00; }
+.node.has-points .rank-label { color: #FF8C00; }
 .node.maxed .rank-label { color: #00FFFF; }
 
 .node-btns { display: flex; gap: 4px; margin-top: 8px; }
@@ -69,35 +149,41 @@ header { background: #0a0a0a; border-bottom: 1px solid #222; padding: 12px 16px;
 .node-btn:hover { background: #333; color: #fff; }
 .node-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+/* RECAP PANEL */
+.recap-panel {
+  width: 280px;
+  flex-shrink: 0;
+  background: #0f0f0f;
+  border-left: 1px solid #1a1a1a;
+  padding: 16px 12px;
+  position: sticky;
+  top: 120px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+.recap-panel h2 { font-size: 12px; color: #00FFFF; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+.recap-col h3 { font-size: 10px; color: #FF8C00; letter-spacing: 1px; text-transform: uppercase; margin: 12px 0 6px; border-bottom: 1px solid #222; padding-bottom: 3px; }
+.recap-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: 11px; padding: 4px 0; border-bottom: 1px solid #141414; gap: 6px; }
+.recap-row .rname { color: #999; flex: 1; }
+.recap-row .rval { color: #00FFFF; font-weight: bold; white-space: nowrap; }
+.recap-row .rval.neg { color: #7fff7f; }
+.recap-row .rdesc { color: #666; font-size: 10px; }
+.recap-empty { color: #333; font-size: 11px; font-style: italic; padding: 6px 0; }
+
 #prereq-banner {
   display: none;
   position: fixed;
   bottom: 16px; left: 50%; transform: translateX(-50%);
-  background: #2a0a0a;
-  border: 1px solid #ff4444;
-  color: #ff9999;
-  font-size: 13px;
-  padding: 10px 20px;
-  border-radius: 6px;
-  z-index: 200;
-  text-align: center;
-  max-width: 340px;
+  background: #2a0a0a; border: 1px solid #ff4444; color: #ff9999;
+  font-size: 13px; padding: 10px 20px; border-radius: 6px;
+  z-index: 200; text-align: center; max-width: 340px;
   box-shadow: 0 4px 16px #ff000033;
 }
 
-/* SUMMARY / RECAP */
-.recap-section { background: #0f0f0f; border-top: 2px solid #1a1a1a; padding: 20px 16px 40px; max-width: 800px; margin: 0 auto; }
-.recap-section h2 { font-size: 13px; color: #00FFFF; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
-
-.recap-cols { display: flex; gap: 16px; flex-wrap: wrap; }
-.recap-col { flex: 1; min-width: 240px; }
-.recap-col h3 { font-size: 11px; color: #FF8C00; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #2a2a2a; padding-bottom: 4px; }
-
-.recap-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 5px 0; border-bottom: 1px solid #1a1a1a; }
-.recap-row .rname { color: #bbb; }
-.recap-row .rval { color: #00FFFF; font-weight: bold; font-size: 13px; }
-.recap-row .rval.maxed { color: #7fff7f; }
-.recap-empty { color: #333; font-size: 12px; font-style: italic; padding: 8px 0; }
+@media (max-width: 640px) {
+  .main-layout { flex-direction: column; }
+  .recap-panel { width: 100%; position: static; border-left: none; border-top: 2px solid #1a1a1a; max-height: none; }
+}
 </style>
 </head>
 <body>
@@ -105,17 +191,17 @@ header { background: #0a0a0a; border-bottom: 1px solid #222; padding: 12px 16px;
 <header>
   <div class="header-top">
     <a href="index.html">← Home</a>
-    <h1>Talent Simulator</h1>
+    <h1>Mastery Hall</h1>
     <div style="width:70px"></div>
   </div>
   <div class="points-bar">
     <div class="points-input-wrap">
       <span>My Points:</span>
-      <input type="number" id="total-points" value="50" min="0" max="200">
+      <input type="number" id="total-points" value="35" min="0" max="200">
     </div>
     <div class="points-display">
       Used: <span class="pts-used" id="pts-used">0</span> &nbsp;|&nbsp;
-      Available: <span class="pts-avail ok" id="pts-avail">50</span>
+      Available: <span class="pts-avail ok" id="pts-avail">35</span>
     </div>
     <button class="btn-reset" onclick="resetAll()">↺ Reset</button>
   </div>
@@ -126,19 +212,22 @@ header { background: #0a0a0a; border-bottom: 1px solid #222; padding: 12px 16px;
   <div class="tab" onclick="switchTree('combat')">⚔ Combat</div>
 </div>
 
-<div id="tree-support" class="tree-container"></div>
-<div id="tree-combat" class="tree-container" style="display:none"></div>
-
-<div class="recap-section">
-  <h2>📊 Bonus Summary</h2>
-  <div class="recap-cols">
-    <div class="recap-col">
-      <h3>% Bonuses</h3>
-      <div id="recap-pct"></div>
-    </div>
-    <div class="recap-col">
-      <h3>Other Bonuses & Abilities</h3>
-      <div id="recap-other"></div>
+<div class="main-layout">
+  <div class="tree-panel">
+    <div id="tree-support" class="tree-container"></div>
+    <div id="tree-combat" class="tree-container" style="display:none"></div>
+  </div>
+  <div class="recap-panel">
+    <h2>📊 Bonus Summary</h2>
+    <div id="recap-col">
+      <div class="recap-col">
+        <h3>% Bonuses</h3>
+        <div id="recap-pct"></div>
+      </div>
+      <div class="recap-col">
+        <h3>Other Bonuses & Abilities</h3>
+        <div id="recap-other"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -146,23 +235,44 @@ header { background: #0a0a0a; border-bottom: 1px solid #222; padding: 12px 16px;
 <div id="prereq-banner"></div>
 
 <script>
-// ─── NODE DEFINITIONS ────────────────────────────────────────────────────────
-// bonus: { type: 'pct'|'flat'|'active', stat, perRank, unit }
+// ─── SEASON CONFIG ────────────────────────────────────────────────────────────
+const SEASONS = [
+  { key:'s2', label:'Season 2', maxLv: 35, color:'#aaa',    available: true,  default: true  },
+  { key:'s3', label:'Season 3', maxLv: 50, color:'#00FFFF', available: true,  default: false },
+  { key:'s4', label:'Season 4', maxLv: 99, color:'#FF8C00', available: false, default: false },
+];
+
+const seasonUnlocked = { s2: true, s3: false, s4: false };
+
+function maxUnlockedLv() {
+  let max = 0;
+  SEASONS.forEach(s => { if (seasonUnlocked[s.key]) max = Math.max(max, s.maxLv); });
+  return max;
+}
+
+function seasonForLv(lv) {
+  // which season bracket does this lv belong to
+  if (lv <= 35) return 's2';
+  if (lv <= 50) return 's3';
+  return 's4';
+}
+
+// ─── TREE DATA ────────────────────────────────────────────────────────────────
 const TREES = {
   support: {
     label: 'Support',
     tiers: [
       { lv:1, nodes:[
         { id:'s_arch',      name:"Architect's Insight",     max:5, effectDesc:'Season Mastery EXP (buildings) +10% per rank',
-          bonus:{ type:'pct', stat:'Season Mastery EXP (buildings)', perRank:10, unit:'%' } },
+          bonus:{ type:'pct', stat:'Season Mastery EXP (Buildings)', perRank:10, unit:'%' } },
         { id:'s_icebloom',  name:'Icebloom Production Up',  max:5, effectDesc:'Icebloom Yield +3% per rank',
           bonus:{ type:'pct', stat:'Icebloom Yield', perRank:3, unit:'%' } },
       ]},
-      { lv:5, prereq:{ 'Siege Expert':5 }, nodes:[
+      { lv:5, nodes:[
         { id:'s_free_con',  name:'Free Construction',       max:5, effectDesc:'Free construct duration +20 min per rank',
           bonus:{ type:'flat', stat:'Free Construct Duration', perRank:20, unit:' min' } },
-        { id:'s_siege_exp', name:'Siege Expert',            max:5, effectDesc:'Season Mastery EXP (siege) +10% per rank', prereq:5,
-          bonus:{ type:'pct', stat:'Season Mastery EXP (siege)', perRank:10, unit:'%' } },
+        { id:'s_siege_exp', name:'Siege Expert',            max:5, effectDesc:'Season Mastery EXP (siege) +10% per rank', nodePrereq:5,
+          bonus:{ type:'pct', stat:'Season Mastery EXP (Siege)', perRank:10, unit:'%' } },
       ]},
       { lv:10, prereq:5, nodes:[
         { id:'s_con_sup',   name:'Construction Support',    max:2, effectDesc:'Boost ally construction +10% for 1h (CD: 24h) per rank',
@@ -174,22 +284,22 @@ const TREES = {
         { id:'s_work_one',  name:'Work as One',             max:5, effectDesc:'Alliance Help Effect +10% per rank',
           bonus:{ type:'pct', stat:'Alliance Help Effect', perRank:10, unit:'%' } },
         { id:'s_injury',    name:'Injury Relief',           max:5, effectDesc:'Serious-to-Slight Injury +10% per rank',
-          bonus:{ type:'pct', stat:'Serious→Slight Injury Ratio', perRank:10, unit:'%' } },
+          bonus:{ type:'pct', stat:'Serious→Slight Injury', perRank:10, unit:'%' } },
       ]},
       { lv:20, prereq:10, nodes:[
         { id:'s_shield',    name:'Shield Bond',             max:1, effectDesc:'Grant ally 1h shield (CD: 72h)',
           bonus:{ type:'active', stat:'Shield Bond', perRank:1, unit:'', desc:'Grant ally 1h Peace Shield · CD 72h' } },
         { id:'s_resist',    name:'Resistance Boost',        max:5, effectDesc:'+1 Virus Resistance per Greenhouse level per rank',
-          bonus:{ type:'flat', stat:'Virus Resistance', perRank:1, unit:' per GH level' } },
+          bonus:{ type:'flat', stat:'Virus Resistance', perRank:1, unit:'/GH level' } },
       ]},
       { lv:25, prereq:10, nodes:[
-        { id:'s_swift',     name:'Swift Rally',             max:5, effectDesc:'March Speed (rally join) +10% per rank',
+        { id:'s_swift',     name:'Swift Rally',             max:5, effectDesc:'March Speed (rally) +10% per rank',
           bonus:{ type:'pct', stat:'March Speed (Rally)', perRank:10, unit:'%' } },
-        { id:'s_eco_build', name:'Eco Recovery (Buildings)',max:5, effectDesc:'Season buildings construction speed +10% per rank',
+        { id:'s_eco_build', name:'Eco Recovery (Buildings)',max:5, effectDesc:'Season building speed +10% per rank',
           bonus:{ type:'pct', stat:'Building Speed (Season)', perRank:10, unit:'%' } },
       ]},
       { lv:30, prereq:15, single:true, nodes:[
-        { id:'s_vault',     name:'Vault Master',            max:5, effectDesc:'Deploy loot vault for alliance · Troop Load +30% per rank',
+        { id:'s_vault',     name:'Vault Master',            max:5, effectDesc:'Deploy loot vault · Troop Load +30% per rank',
           bonus:{ type:'active', stat:'Vault Master', perRank:30, unit:'%', desc:'Deploy loot vault · Troop Load +30%/rank' } },
       ]},
       { lv:35, prereq:15, nodes:[
@@ -199,20 +309,20 @@ const TREES = {
           bonus:{ type:'pct', stat:'Member Points (Alliance)', perRank:100, unit:'%' } },
       ]},
       { lv:40, prereq:20, nodes:[
-        { id:'s_res_assist',name:'Research Assist',         max:2, effectDesc:'Boost ally research +10% for 1h (CD: 24h) per rank',
-          bonus:{ type:'active', stat:'Research Assist', perRank:10, unit:'%', desc:'Ally research speed +10%/rank for 1h · CD 24h' } },
+        { id:'s_res_assist',name:'Research Assist',         max:2, effectDesc:'Boost ally research +10% for 1h (CD: 24h)',
+          bonus:{ type:'active', stat:'Research Assist', perRank:10, unit:'%', desc:'Ally research +10%/rank for 1h · CD 24h' } },
         { id:'s_mutual',    name:'Mutual Benefits',         max:5, effectDesc:'Construction Cost -2% per rank',
           bonus:{ type:'pct', stat:'Construction Cost', perRank:-2, unit:'%' } },
       ]},
       { lv:45, prereq:20, nodes:[
-        { id:'s_smart',     name:'Smart Craft',             max:5, effectDesc:'Food/Wood/Zent upgrade cost -2% per rank',
+        { id:'s_smart',     name:'Smart Craft',             max:5, effectDesc:'Upgrade cost (Food/Wood/Zent) -2% per rank',
           bonus:{ type:'pct', stat:'Upgrade Cost (Food/Wood/Zent)', perRank:-2, unit:'%' } },
-        { id:'s_eco_res',   name:'Eco Recovery (Research)', max:5, effectDesc:'Electricity/Zent research cost -2% per rank',
+        { id:'s_eco_res',   name:'Eco Recovery (Research)', max:5, effectDesc:'Research cost (Elec/Zent) -2% per rank',
           bonus:{ type:'pct', stat:'Research Cost (Elec/Zent)', perRank:-2, unit:'%' } },
       ]},
       { lv:50, prereq:25, single:true, nodes:[
         { id:'s_cog_boost', name:'Cognitive Boost',         max:5, effectDesc:'Assign up to 5 pts to Combat tree',
-          bonus:{ type:'active', stat:'Cognitive Boost', perRank:1, unit:'', desc:'Assign 5 Mastery Points to Combat tree' } },
+          bonus:{ type:'active', stat:'Cognitive Boost (→Combat)', perRank:1, unit:'', desc:'Assign 5 Mastery Points to Combat tree' } },
       ]},
     ]
   },
@@ -226,126 +336,163 @@ const TREES = {
           bonus:{ type:'pct', stat:'Rally DMG (Self)', perRank:2, unit:'%' } },
       ]},
       { lv:5, nodes:[
-        { id:'c_drill',      name:'Drill Setup',          max:5, effectDesc:'Troop Capacity +200 per rank',
+        { id:'c_drill',      name:'Drill Setup',         max:5, effectDesc:'Troop Capacity +200 per rank',
           bonus:{ type:'flat', stat:'Troop Capacity', perRank:200, unit:'' } },
-        { id:'c_intense',    name:'Intense Training',     max:5, effectDesc:'Training Speed +3% per rank',
+        { id:'c_intense',    name:'Intense Training',    max:5, effectDesc:'Training Speed +3% per rank',
           bonus:{ type:'pct', stat:'Training Speed', perRank:3, unit:'%' } },
       ]},
       { lv:10, prereq:5, nodes:[
-        { id:'c_rotland',    name:'Rotland Trek',         max:5, effectDesc:'March Speed in Capital +1% per rank',
+        { id:'c_rotland',    name:'Rotland Trek',        max:5, effectDesc:'March Speed in Capital +1% per rank',
           bonus:{ type:'pct', stat:'March Speed (Capital)', perRank:1, unit:'%' } },
-        { id:'c_rally_def',  name:'Rally Defense',        max:5, effectDesc:'Team Mortality -1% per rank',
+        { id:'c_rally_def',  name:'Rally Defense',       max:5, effectDesc:'Team Mortality -1% per rank',
           bonus:{ type:'pct', stat:'Team Mortality', perRank:-1, unit:'%' } },
       ]},
       { lv:15, prereq:5, nodes:[
-        { id:'c_camo',       name:'Camouflage',           max:2, effectDesc:'HQ anti-scout +30 min per rank (CD: 24h)',
+        { id:'c_camo',       name:'Camouflage',          max:2, effectDesc:'HQ anti-scout +30 min per rank (CD: 24h)',
           bonus:{ type:'active', stat:'Camouflage', perRank:30, unit:' min', desc:'HQ anti-scout +30min/rank · CD 24h' } },
-        { id:'c_master_rule',name:'Master of Rule',       max:5, effectDesc:'Troop DMG during State Ruler +2% per rank',
+        { id:'c_master_rule',name:'Master of Rule',      max:5, effectDesc:'Troop DMG (State Ruler) +2% per rank',
           bonus:{ type:'pct', stat:'Troop DMG (State Ruler)', perRank:2, unit:'%' } },
       ]},
       { lv:20, prereq:10, nodes:[
-        { id:'c_victory',    name:'Victory Chase',        max:5, effectDesc:'Target Mortality +1% when attacking burning HQ',
+        { id:'c_victory',    name:'Victory Chase',       max:5, effectDesc:'Target Mortality +1% vs burning HQ per rank',
           bonus:{ type:'pct', stat:'Target Mortality (Burning HQ)', perRank:1, unit:'%' } },
-        { id:'c_berserk',    name:'Berserk',              max:5, effectDesc:'Damage +1% under War Frenzy per rank',
+        { id:'c_berserk',    name:'Berserk',             max:5, effectDesc:'Damage +1% under War Frenzy per rank',
           bonus:{ type:'pct', stat:'Damage (War Frenzy)', perRank:1, unit:'%' } },
       ]},
       { lv:25, prereq:10, nodes:[
-        { id:'c_siege',      name:'Siege Strike',         max:5, effectDesc:'Troop ATK & DEF in Siege +2% per rank',
+        { id:'c_siege',      name:'Siege Strike',        max:5, effectDesc:'Troop ATK & DEF in Siege +2% per rank',
           bonus:{ type:'pct', stat:'Troop ATK & DEF (Siege)', perRank:2, unit:'%' } },
-        { id:'c_offense',    name:'Offense Line',         max:1, effectDesc:'Build 1 extra offensive structure',
+        { id:'c_offense',    name:'Offense Line',        max:1, effectDesc:'Build 1 extra offensive structure',
           bonus:{ type:'flat', stat:'Extra Offensive Structures', perRank:1, unit:'' } },
       ]},
       { lv:30, prereq:15, single:true, nodes:[
-        { id:'c_rapid',      name:'Rapid Strike',         max:5, effectDesc:'Rally attacks can depart early (+1 weekly limit per rank)',
-          bonus:{ type:'flat', stat:'Early Rally Depart (weekly)', perRank:1, unit:'x' } },
+        { id:'c_rapid',      name:'Rapid Strike',        max:5, effectDesc:'Early rally depart +1 weekly limit per rank',
+          bonus:{ type:'flat', stat:'Early Rally (weekly)', perRank:1, unit:'x' } },
       ]},
       { lv:35, prereq:15, nodes:[
-        { id:'c_recall',     name:'Instant Recall',       max:2, effectDesc:'Instantly recall one troop — usable +1 time daily per rank',
-          bonus:{ type:'flat', stat:'Instant Recall (daily)', perRank:1, unit:'x/day' } },
-        { id:'c_first_aid',  name:'First Aid Expert',     max:5, effectDesc:'Healing Speed +5% per rank',
+        { id:'c_recall',     name:'Instant Recall',      max:2, effectDesc:'Instantly recall troop +1 daily use per rank',
+          bonus:{ type:'flat', stat:'Instant Recall (daily)', perRank:1, unit:'x' } },
+        { id:'c_first_aid',  name:'First Aid Expert',    max:5, effectDesc:'Healing Speed +5% per rank',
           bonus:{ type:'pct', stat:'Healing Speed', perRank:5, unit:'%' } },
       ]},
       { lv:40, prereq:20, nodes:[
-        { id:'c_glorious',   name:'Glorious Commander',   max:5, effectDesc:'Troop DMG during Clash for Glory +2% per rank',
+        { id:'c_glorious',   name:'Glorious Commander',  max:5, effectDesc:'Troop DMG (Clash for Glory) +2% per rank',
           bonus:{ type:'pct', stat:'Troop DMG (Clash for Glory)', perRank:2, unit:'%' } },
-        { id:'c_again',      name:'Again!',               max:5, effectDesc:'Troop Return Speed +5% per rank',
+        { id:'c_again',      name:'Again!',              max:5, effectDesc:'Troop Return Speed +5% per rank',
           bonus:{ type:'pct', stat:'Troop Return Speed', perRank:5, unit:'%' } },
       ]},
       { lv:45, prereq:20, nodes:[
-        { id:'c_holdline',   name:'Hold The Line',        max:5, effectDesc:'Troop ATK & DEF when defending HQ +2% per rank',
-          bonus:{ type:'pct', stat:'Troop ATK & DEF (Defense)', perRank:2, unit:'%' } },
-        { id:'c_def_works',  name:'Defensive Works',      max:1, effectDesc:'Build 1 extra defensive structure',
+        { id:'c_holdline',   name:'Hold The Line',       max:5, effectDesc:'Troop ATK & DEF (HQ defense) +2% per rank',
+          bonus:{ type:'pct', stat:'Troop ATK & DEF (HQ Defense)', perRank:2, unit:'%' } },
+        { id:'c_def_works',  name:'Defensive Works',     max:1, effectDesc:'Build 1 extra defensive structure',
           bonus:{ type:'flat', stat:'Extra Defensive Structures', perRank:1, unit:'' } },
       ]},
       { lv:50, prereq:25, single:true, nodes:[
-        { id:'c_cog_boost',  name:'Cognitive Boost',      max:5, effectDesc:'Assign up to 5 pts to Support tree',
-          bonus:{ type:'active', stat:'Cognitive Boost', perRank:1, unit:'', desc:'Assign 5 Mastery Points to Support tree' } },
+        { id:'c_cog_boost',  name:'Cognitive Boost',     max:5, effectDesc:'Assign up to 5 pts to Support tree',
+          bonus:{ type:'active', stat:'Cognitive Boost (→Support)', perRank:1, unit:'', desc:'Assign 5 Mastery Points to Support tree' } },
       ]},
     ]
   }
 };
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
+// ─── STATE ────────────────────────────────────────────────────────────────────
 const state = {};
-Object.values(TREES).forEach(tree => tree.tiers.forEach(tier => tier.nodes.forEach(n => state[n.id] = 0)));
-
+Object.values(TREES).forEach(t => t.tiers.forEach(tier => tier.nodes.forEach(n => state[n.id] = 0)));
 let currentTree = 'support';
 let bannerTimeout = null;
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function totalPoints() { return parseInt(document.getElementById('total-points').value) || 0; }
-function usedPoints() { return Object.values(state).reduce((a,b) => a+b, 0); }
-
-function getPrereq(treeKey, tier) {
-  // per-node prereq (only Siege Expert in support lv5)
-  // tier-level prereq
-  return typeof tier.prereq === 'number' ? tier.prereq : 0;
-}
-
-function getNodePrereq(node) {
-  return typeof node.prereq === 'number' ? node.prereq : 0;
-}
+function usedPoints() { return Object.values(state).reduce((a,b)=>a+b,0); }
 
 function pointsSpentBefore(treeKey, lv) {
   return TREES[treeKey].tiers
     .filter(t => t.lv < lv)
-    .reduce((sum, t) => sum + t.nodes.reduce((s, n) => s + (state[n.id]||0), 0), 0);
+    .reduce((sum,t) => sum + t.nodes.reduce((s,n) => s+(state[n.id]||0), 0), 0);
 }
 
-function tierUnlocked(treeKey, lv, tierPrereq) {
-  if (!tierPrereq) return true;
-  return pointsSpentBefore(treeKey, lv) >= tierPrereq;
+function tierPrereqMet(treeKey, tier) {
+  if (!tier.prereq) return true;
+  return pointsSpentBefore(treeKey, tier.lv) >= tier.prereq;
 }
 
-function nodeUnlocked(treeKey, lv, tierPrereq, nodePrereq) {
-  if (!tierUnlocked(treeKey, lv, tierPrereq)) return false;
-  if (!nodePrereq) return true;
-  return pointsSpentBefore(treeKey, lv) >= nodePrereq;
+function nodePrereqMet(treeKey, tier, node) {
+  if (!tierPrereqMet(treeKey, tier)) return false;
+  if (!node.nodePrereq) return true;
+  return pointsSpentBefore(treeKey, tier.lv) >= node.nodePrereq;
 }
 
-// ─── RENDER TREE ─────────────────────────────────────────────────────────────
+function isSeasonLocked(lv) {
+  return lv > maxUnlockedLv();
+}
+
+// ─── RENDER TREE ──────────────────────────────────────────────────────────────
 function renderTree(treeKey) {
   const tree = TREES[treeKey];
   const container = document.getElementById('tree-' + treeKey);
   container.innerHTML = '';
 
-  tree.tiers.forEach(tier => {
-    const tierPrereq = getPrereq(treeKey, tier);
+  let lastSeason = null;
+  let wmDiv = null;
+  let wmStart = null;
+
+  tree.tiers.forEach((tier, idx) => {
+    const thisSeason = seasonForLv(tier.lv);
+
+    // Season divider
+    if (thisSeason !== lastSeason) {
+      // close previous watermark section
+      if (wmDiv) {
+        container.appendChild(wmDiv);
+        wmDiv = null;
+      }
+
+      // season divider line
+      const divider = document.createElement('div');
+      divider.className = 'season-divider';
+      const s = SEASONS.find(x => x.key === thisSeason);
+      divider.innerHTML = `<span class="season-badge ${thisSeason}">${s.label}</span>`;
+      container.appendChild(divider);
+
+      // season unlock checkbox (for S3+)
+      if (thisSeason !== 's2') {
+        const unlockRow = document.createElement('div');
+        unlockRow.className = 'season-unlock' + (seasonUnlocked[thisSeason] ? ' unlocked' : '') + (!s.available ? ' coming' : '');
+        unlockRow.id = 'unlock-row-' + thisSeason;
+        if (s.available) {
+          unlockRow.onclick = () => toggleSeason(thisSeason);
+          unlockRow.innerHTML = `
+            <input type="checkbox" id="chk-${thisSeason}" ${seasonUnlocked[thisSeason] ? 'checked' : ''} onclick="event.stopPropagation();toggleSeason('${thisSeason}')">
+            <label class="season-unlock-label" for="chk-${thisSeason}">Unlock ${s.label} skills (Lv.${lastSeason === 's2' ? 36 : 51}+)</label>
+            <span class="season-unlock-sub">${seasonUnlocked[thisSeason] ? '✓ Active' : 'Locked'}</span>
+          `;
+        } else {
+          unlockRow.innerHTML = `
+            <input type="checkbox" disabled>
+            <label class="season-unlock-label">${s.label} — Data coming soon</label>
+            <span class="season-unlock-sub">🔒</span>
+          `;
+        }
+        container.appendChild(unlockRow);
+      }
+
+      lastSeason = thisSeason;
+    }
+
+    // Tier
     const tierDiv = document.createElement('div');
     tierDiv.className = 'tier';
 
     const label = document.createElement('div');
     label.className = 'tier-label';
-    label.textContent = `MASTERY LV.${tier.lv}` + (tierPrereq ? `  ·  ${tierPrereq} pts required` : '');
+    label.textContent = `MASTERY LV.${tier.lv}` + (tier.prereq ? `  ·  ${tier.prereq} pts required` : '');
     tierDiv.appendChild(label);
 
     const nodesDiv = document.createElement('div');
     nodesDiv.className = 'tier-nodes' + (tier.single ? ' single' : '');
 
     tier.nodes.forEach(nodeData => {
-      const nodePrereq = getNodePrereq(nodeData);
-      const unlocked = nodeUnlocked(treeKey, tier.lv, tierPrereq, nodePrereq);
-      nodesDiv.appendChild(buildNode(treeKey, tier.lv, tierPrereq, nodeData, unlocked));
+      nodesDiv.appendChild(buildNode(treeKey, tier, nodeData));
     });
 
     tierDiv.appendChild(nodesDiv);
@@ -356,16 +503,17 @@ function renderTree(treeKey) {
   updatePointsBar();
 }
 
-function buildNode(treeKey, lv, tierPrereq, nodeData, unlocked) {
+function buildNode(treeKey, tier, nodeData) {
   const rank = state[nodeData.id] || 0;
   const isMax = rank >= nodeData.max;
   const hasPoints = rank > 0;
-  const nodePrereq = getNodePrereq(nodeData);
+  const prereqOk = nodePrereqMet(treeKey, tier, nodeData);
+  const seasLocked = isSeasonLocked(tier.lv);
 
   const node = document.createElement('div');
   node.className = 'node'
-    + (isMax ? ' maxed' : hasPoints ? ' has-points' : '')
-    + (!unlocked ? ' locked' : '');
+    + (seasLocked ? ' season-locked' : (!prereqOk ? ' locked' : ''))
+    + (isMax ? ' maxed' : hasPoints ? ' has-points' : '');
   node.id = 'node-' + nodeData.id;
 
   let dots = '';
@@ -373,7 +521,8 @@ function buildNode(treeKey, lv, tierPrereq, nodeData, unlocked) {
     dots += `<div class="dot ${i < rank ? 'filled' : ''}"></div>`;
   }
 
-  const prereqNote = nodePrereq ? `<div style="font-size:9px;color:#ff8844;margin-bottom:3px">Req: ${nodePrereq} pts spent</div>` : '';
+  const prereqNote = nodeData.nodePrereq
+    ? `<div style="font-size:9px;color:#ff8844;margin-bottom:3px">Req: ${nodeData.nodePrereq} pts spent</div>` : '';
 
   node.innerHTML = `
     <div class="node-name">${nodeData.name}</div>
@@ -384,23 +533,30 @@ function buildNode(treeKey, lv, tierPrereq, nodeData, unlocked) {
       <div class="rank-label">${rank}/${nodeData.max}</div>
     </div>
     <div class="node-btns">
-      <button class="node-btn" onclick="adjustNode('${treeKey}',${lv},${tierPrereq},'${nodeData.id}',${nodeData.max},${nodePrereq},-1)" ${rank===0?'disabled':''}>−</button>
-      <button class="node-btn" onclick="adjustNode('${treeKey}',${lv},${tierPrereq},'${nodeData.id}',${nodeData.max},${nodePrereq},+1)" ${isMax?'disabled':''}>+</button>
+      <button class="node-btn" onclick="adjustNode('${treeKey}','${tier.lv}','${nodeData.id}',${nodeData.max},-1)" ${rank===0?'disabled':''}>−</button>
+      <button class="node-btn" onclick="adjustNode('${treeKey}','${tier.lv}','${nodeData.id}',${nodeData.max},+1)" ${isMax?'disabled':''}>+</button>
     </div>
   `;
   return node;
 }
 
-function adjustNode(treeKey, lv, tierPrereq, nodeId, maxRank, nodePrereq, delta) {
+function adjustNode(treeKey, lv, nodeId, maxRank, delta) {
+  lv = parseInt(lv);
+  if (isSeasonLocked(lv)) {
+    showBanner(`⚠ Unlock Season ${seasonForLv(lv).toUpperCase()} to access these skills`);
+    return;
+  }
+  const tier = TREES[treeKey].tiers.find(t => t.lv === lv);
+  const nodeData = tier.nodes.find(n => n.id === nodeId);
+
   if (delta > 0) {
-    if (!nodeUnlocked(treeKey, lv, tierPrereq, nodePrereq)) {
-      const needed = nodePrereq || tierPrereq;
+    if (!nodePrereqMet(treeKey, tier, nodeData)) {
+      const needed = nodeData.nodePrereq || tier.prereq;
       showBanner(`⚠ Requires ${needed} points spent in prior tiers`);
-      flashNode(nodeId);
-      return;
+      flashNode(nodeId); return;
     }
     if (totalPoints() - usedPoints() <= 0) {
-      showBanner(`⚠ No points available — increase your total or reset some talents`);
+      showBanner(`⚠ No points available — increase total or reset some talents`);
       return;
     }
   }
@@ -408,10 +564,34 @@ function adjustNode(treeKey, lv, tierPrereq, nodeId, maxRank, nodePrereq, delta)
   const next = Math.max(0, Math.min(maxRank, cur + delta));
   if (next === cur) return;
   state[nodeId] = next;
-  renderTree('combat');
+  renderBoth();
+}
+
+function toggleSeason(key) {
+  const s = SEASONS.find(x => x.key === key);
+  if (!s || !s.available) return;
+  seasonUnlocked[key] = !seasonUnlocked[key];
+  // if locking a season, reset points in those nodes
+  if (!seasonUnlocked[key]) {
+    Object.values(TREES).forEach(tree => {
+      tree.tiers.forEach(tier => {
+        if (seasonForLv(tier.lv) === key) {
+          tier.nodes.forEach(n => state[n.id] = 0);
+        }
+      });
+    });
+  }
+  // update points default for season
+  const maxLv = maxUnlockedLv();
+  const defaultPts = maxLv <= 35 ? 35 : maxLv <= 50 ? 50 : 70;
+  document.getElementById('total-points').value = defaultPts;
+  renderBoth();
+}
+
+function renderBoth() {
   renderTree('support');
-  if (currentTree === 'combat') { document.getElementById('tree-combat').style.display=''; document.getElementById('tree-support').style.display='none'; }
-  else { document.getElementById('tree-support').style.display=''; document.getElementById('tree-combat').style.display='none'; }
+  renderTree('combat');
+  switchTree(currentTree);
 }
 
 function flashNode(nodeId) {
@@ -439,10 +619,10 @@ function updatePointsBar() {
   el.className = 'pts-avail ' + (avail < 0 ? 'warn' : 'ok');
 }
 
-// ─── RECAP ───────────────────────────────────────────────────────────────────
+// ─── RECAP ────────────────────────────────────────────────────────────────────
 function renderRecap() {
-  const pctMap = {};   // stat -> total value
-  const otherArr = []; // { stat, value, unit, desc }
+  const pctMap = {};
+  const otherArr = [];
 
   Object.values(TREES).forEach(tree => {
     tree.tiers.forEach(tier => {
@@ -454,38 +634,44 @@ function renderRecap() {
         if (b.type === 'pct') {
           pctMap[b.stat] = (pctMap[b.stat] || 0) + total;
         } else {
-          // flat or active
-          const existing = otherArr.find(x => x.stat === b.stat);
-          if (existing) { existing.value += total; }
-          else otherArr.push({ stat: b.stat, value: total, unit: b.unit, desc: b.desc || null, type: b.type });
+          const ex = otherArr.find(x => x.stat === b.stat);
+          if (ex) ex.value += total;
+          else otherArr.push({ stat: b.stat, value: total, unit: b.unit, desc: b.desc || null });
         }
       });
     });
   });
 
-  // PCT column
   const pctEl = document.getElementById('recap-pct');
   const pctEntries = Object.entries(pctMap);
   if (!pctEntries.length) {
     pctEl.innerHTML = '<div class="recap-empty">No % bonuses yet</div>';
   } else {
-    pctEl.innerHTML = pctEntries.sort((a,b) => Math.abs(b[1]) - Math.abs(a[1])).map(([stat, val]) => {
-      const isMax = false;
-      const sign = val > 0 ? '+' : '';
-      return `<div class="recap-row"><span class="rname">${stat}</span><span class="rval">${sign}${val}%</span></div>`;
-    }).join('');
+    pctEl.innerHTML = pctEntries
+      .sort((a,b) => Math.abs(b[1]) - Math.abs(a[1]))
+      .map(([stat, val]) => {
+        const sign = val > 0 ? '+' : '';
+        const cls = val < 0 ? 'rval neg' : 'rval';
+        return `<div class="recap-row"><span class="rname">${stat}</span><span class="${cls}">${sign}${val}%</span></div>`;
+      }).join('');
   }
 
-  // OTHER column
   const otherEl = document.getElementById('recap-other');
   if (!otherArr.length) {
     otherEl.innerHTML = '<div class="recap-empty">No other bonuses yet</div>';
   } else {
     otherEl.innerHTML = otherArr.map(item => {
-      const display = item.desc
-        ? `<span class="rname" style="font-size:11px">${item.stat}</span><span class="rval" style="font-size:11px;color:#aaa">${item.desc}</span>`
-        : `<span class="rname">${item.stat}</span><span class="rval">${item.value > 0 ? '+' : ''}${item.value}${item.unit}</span>`;
-      return `<div class="recap-row" style="${item.desc?'flex-direction:column;gap:2px;align-items:flex-start':''}">${display}</div>`;
+      if (item.desc) {
+        return `<div class="recap-row" style="flex-direction:column;gap:2px">
+          <span class="rname">${item.stat}</span>
+          <span class="rdesc">${item.desc}</span>
+        </div>`;
+      }
+      const sign = item.value > 0 ? '+' : '';
+      return `<div class="recap-row">
+        <span class="rname">${item.stat}</span>
+        <span class="rval">${sign}${item.value}${item.unit}</span>
+      </div>`;
     }).join('');
   }
 }
@@ -493,28 +679,24 @@ function renderRecap() {
 function switchTree(treeKey) {
   currentTree = treeKey;
   document.getElementById('tree-support').style.display = treeKey === 'support' ? '' : 'none';
-  document.getElementById('tree-combat').style.display = treeKey === 'combat' ? '' : 'none';
+  document.getElementById('tree-combat').style.display  = treeKey === 'combat'  ? '' : 'none';
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', (i === 0 && treeKey === 'support') || (i === 1 && treeKey === 'combat'));
+    t.classList.toggle('active', (i===0 && treeKey==='support') || (i===1 && treeKey==='combat'));
   });
 }
 
 function resetAll() {
   Object.keys(state).forEach(k => state[k] = 0);
-  renderTree('combat');
-  renderTree('support');
-  switchTree(currentTree);
+  renderBoth();
 }
 
 document.getElementById('total-points').addEventListener('input', () => {
-  renderTree('combat');
-  renderTree('support');
-  switchTree(currentTree);
+  updatePointsBar();
+  renderRecap();
 });
 
 // INIT
-renderTree('combat');
-renderTree('support');
+renderBoth();
 switchTree('support');
 </script>
 </body>
