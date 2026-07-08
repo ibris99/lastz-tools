@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lucky Discounter — Planner</title>
+<style>
+  :root{
+    --bg:#0D0D0D;
+    --panel:#111111;
+    --panel2:#1a1a1a;
+    --cyan:#00FFFF;
+    --orange:#FF8C00;
+    --text:#E8E8E8;
+    --dim:#8A8A8A;
+    --danger:#FF4D4D;
+    --good:#4DFFB0;
+    --border:#1e1e1e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:Arial,sans-serif;
+    margin:0; padding:0;
+  }
+  /* TOP BAR */
+  .top-bar{
+    background:#0a0a0a; border-bottom:1px solid #222;
+    padding:12px 16px; display:flex; align-items:center;
+    justify-content:space-between; position:sticky; top:0; z-index:100;
+  }
+  .top-bar a{color:var(--cyan); text-decoration:none; font-size:13px; border:1px solid var(--cyan); padding:4px 12px; border-radius:4px;}
+  .top-bar h1{font-size:16px; color:var(--cyan); letter-spacing:2px; text-transform:uppercase; margin:0;}
+  /* BANNER */
+  .banner{width:100%; max-height:160px; overflow:hidden; position:relative;}
+  .banner img.bg{width:100%; height:160px; object-fit:cover; object-position:center; display:block;}
+  .banner .overlay{position:absolute;inset:0;background:linear-gradient(to bottom,#0D0D0D22,#0D0D0D);}
+  .banner .banner-text{position:absolute;bottom:14px;left:20px;display:flex;align-items:center;gap:12px;}
+  .banner .banner-text img.ticket{height:44px;object-fit:contain;filter:drop-shadow(0 2px 8px #000a);}
+  .banner .banner-text h2{font-size:clamp(1.1rem,3vw,1.6rem);color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin:0;}
+  .banner .banner-text .btag{font-size:10px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:3px;}
+  /* CONTENT WRAP */
+  .page-content{padding:20px 16px 48px; max-width:900px; margin:0 auto;}
+  h1{display:none;}
+  .sub{color:var(--dim); font-size:12px; margin-bottom:20px;}
+  .tabs{display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--border);}
+  .tab{
+    padding:10px 16px; cursor:pointer; color:var(--dim); font-size:13px;
+    border-bottom:2px solid transparent; font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+  }
+  .tab.active{color:var(--cyan); border-bottom-color:var(--cyan);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:800px){.grid2{grid-template-columns:1fr;}}
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:6px;
+    padding:16px; margin-bottom:16px;
+  }
+  .card h2{
+    font-size:13px; color:var(--orange); text-transform:uppercase; letter-spacing:.5px;
+    margin:0 0 12px 0; border-left:3px solid var(--orange); padding-left:8px;
+  }
+  label{font-size:12px; color:var(--dim); display:block; margin-bottom:4px;}
+  input[type=number], input[type=text], input[type=date]{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    padding:8px; border-radius:4px; width:100%; font-size:14px; margin-bottom:10px;
+  }
+  input:focus{outline:1px solid var(--cyan);}
+  .row{display:flex; gap:10px;}
+  .row > div{flex:1;}
+  .stat{
+    display:flex; justify-content:space-between; padding:6px 0;
+    border-bottom:1px dashed var(--border); font-size:13px;
+  }
+  .stat:last-child{border-bottom:none;}
+  .stat .v{color:var(--cyan); font-weight:700;}
+  .stat .v.orange{color:var(--orange);}
+  .stat .v.good{color:var(--good);}
+  .stat .v.danger{color:var(--danger);}
+  .bignum{font-size:28px; color:var(--cyan); font-weight:700; font-family:'Orbitron',Arial,sans-serif;}
+  .bignum.orange{color:var(--orange);}
+  .biglabel{font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.5px;}
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th{color:var(--dim); text-align:left; padding:6px 4px; border-bottom:1px solid var(--border); font-weight:600;}
+  td{padding:6px 4px; border-bottom:1px solid var(--border);}
+  .btn{
+    background:var(--cyan); color:#000; border:none; padding:10px 16px;
+    border-radius:4px; font-weight:700; cursor:pointer; font-size:13px;
+    text-transform:uppercase; letter-spacing:.5px;
+  }
+  .btn:hover{opacity:.85;}
+  .btn.secondary{background:transparent; border:1px solid var(--orange); color:var(--orange);}
+  .btn.danger{background:transparent; border:1px solid var(--danger); color:var(--danger);}
+  .progressbar{
+    background:var(--panel2); border-radius:8px; height:18px; overflow:hidden; margin:8px 0;
+    border:1px solid var(--border);
+  }
+  .progressfill{background:linear-gradient(90deg,var(--orange),var(--cyan)); height:100%;}
+  .log-entry{
+    background:var(--panel2); border:1px solid var(--border); border-radius:4px;
+    padding:10px; margin-bottom:8px; font-size:12px;
+  }
+  .log-entry .top{display:flex; justify-content:space-between; color:var(--dim); margin-bottom:4px;}
+  .pill{
+    display:inline-block; background:var(--panel2); border:1px solid var(--border);
+    padding:2px 8px; border-radius:10px; font-size:11px; margin-right:6px; color:var(--dim);
+  }
+  .note{font-size:11px; color:var(--dim); font-style:italic; margin-top:6px;}
+  .checklabel{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); margin-bottom:10px;}
+  .checklabel input{width:auto; margin:0;}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <a href="weekly_events.html">← Events</a>
+  <h1>Lucky Discounter</h1>
+  <div style="width:80px"></div>
+</div>
+
+<!-- BANNER -->
+<div class="banner">
+  <img class="bg" src="lucky_discounter_bg.png" alt="Lucky Discounter">
+  <div class="overlay"></div>
+  <div class="banner-text">
+    <img class="ticket" src="lucky_ticket.png" alt="ticket">
+    <div>
+      <span class="btag">🔄 Cyclical Event</span>
+      <h2>Lucky Discounter — Planner &amp; Tracker</h2>
+    </div>
+  </div>
+</div>
+
+<div class="page-content">
+<div class="sub">EV model based on your 5 discount tiers (10/30/50/70/90%) — Last Z</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="planner">Planner</div>
+  <div class="tab" data-tab="forecast">Forecast 1M</div>
+  <div class="tab" data-tab="optimizer">Purchase Optimizer</div>
+  <div class="tab" data-tab="tracker">Event Tracker</div>
+  <div class="tab" data-tab="model">Model / Constants</div>
+</div>
+
+<!-- ================= PLANNER ================= -->
+<div class="panel active" id="planner">
+  <div class="grid2">
+    <div class="card">
+      <h2>Goal</h2>
+      <label>Target badges (total, e.g. 1,150,000)</label>
+      <input type="number" id="targetBadges" value="1150000">
+      <label>Badges already on hand (16.4K etc.)</label>
+      <input type="number" id="currentBadges" value="0">
+      <div class="checklabel">
+        <input type="checkbox" id="buySpeedups" checked>
+        <span>I also buy every speedup that appears</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Paid tickets per event week (7 days)</h2>
+      <div class="row">
+        <div><label>Bundle 1 coupon ($4)</label><input type="number" id="b1" value="0" max="7"></div>
+        <div><label>Bundle 3 coupons ($10)</label><input type="number" id="b3" value="0" max="7"></div>
+      </div>
+      <div class="row">
+        <div><label>Bundle 5 coupons ($20)</label><input type="number" id="b5" value="0" max="7"></div>
+        <div><label>Bundle 10 coupons ($50)</label><input type="number" id="b10" value="0" max="7"></div>
+      </div>
+      <label>Bundle 15 coupons — Lucky Coupon ($100, max 3/day)</label>
+      <input type="number" id="b15" value="0" max="21">
+      <div class="note">Event limits (7 days): 7× each of bundle 1/3/5/10 per day max, 21× (3/day) for the 15-coupon bundle.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Result — Per event week (draws)</h2>
+    <div class="grid2">
+      <div>
+        <div class="stat"><span>Free draws</span><span class="v">17</span></div>
+        <div class="stat"><span>Purchased tickets (bundles)</span><span class="v orange" id="outTicketsPaid">0</span></div>
+        <div class="stat"><span><b>Total draws</b></span><span class="v good" id="outTotalDraws">17</span></div>
+        <div class="stat"><span>Expected badges (EV)</span><span class="v" id="outBadges">0</span></div>
+        <div class="stat"><span>💎 required — badges only</span><span class="v orange" id="outDiaBadges">0</span></div>
+        <div class="stat"><span>💎 required — speedups</span><span class="v orange" id="outDiaSpeed">0</span></div>
+        <div class="stat"><span><b>💎 required total</b></span><span class="v danger" id="outDiaTotal">0</span></div>
+      </div>
+      <div>
+        <div class="stat"><span>💎 supplied by purchased bundles</span><span class="v good" id="outDiaSupplied">0</span></div>
+        <div class="stat"><span><b>💎 net to draw from your reserve</b></span><span class="v danger" id="outDiaNet">0</span></div>
+        <div class="stat"><span>Coupons supplied by bundles</span><span class="v" id="outCoupons">0</span></div>
+        <div class="stat"><span>Equivalent cost (Goldbars)</span><span class="v orange" id="outGoldbars">0</span></div>
+        <div class="stat"><span>Cost (USD)</span><span class="v orange" id="outUSD">$0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Progress toward the goal</h2>
+    <div class="progressbar"><div class="progressfill" id="progFill" style="width:0%"></div></div>
+    <div class="stat"><span>Badges remaining after this week</span><span class="v" id="outRemaining">0</span></div>
+    <div class="stat"><span>Number of event weeks (at this rate) to finish the goal</span><span class="v good" id="outWeeksNeeded">0</span></div>
+    <div class="stat"><span>Estimated total cost to reach the goal (USD)</span><span class="v danger" id="outTotalUSD">$0</span></div>
+    <div class="note">This calculation assumes you repeat exactly this purchase plan every event week until the goal is reached.</div>
+  </div>
+</div>
+
+<!-- ================= FORECAST ================= -->
+<div class="panel" id="forecast">
+  <div class="card">
+    <h2>Indicative tiers — cost per event</h2>
+    <div class="row">
+      <div><label>Custom badges/event (manual row)</label><input type="number" id="fcCustom" value="150000"></div>
+    </div>
+    <div class="checklabel">
+      <input type="checkbox" id="fcIncludeSpeed">
+      <span>Also include 💎 cost of speedups (on top of badges)</span>
+    </div>
+    <button class="btn" onclick="runForecast()">Calculate</button>
+    <div class="note">Cost = optimal purchase strategy (best $/ticket bundles first), for the number of paid tickets required for THIS event only. These are indicative tiers, not a cumulative plan toward a goal.</div>
+  </div>
+
+  <div class="card">
+    <h2>Forecast table</h2>
+    <table id="fcTable">
+      <tr>
+        <th>Badges/event</th>
+        <th>Draws required</th>
+        <th>Free (17)</th>
+        <th>Paid tickets</th>
+        <th>💎 required</th>
+        <th>Cost USD</th>
+        <th>Cost Goldbars</th>
+      </tr>
+      <tbody id="fcBody"></tbody>
+    </table>
+    <div class="note">If "Paid tickets" exceeds the max buyable/week (448), the row is flagged — that pace can't be reached in a single event, even with unlimited budget.</div>
+  </div>
+</div>
+
+<!-- ================= OPTIMIZER ================= -->
+<div class="panel" id="optimizer">
+  <div class="card">
+    <h2>Optimal purchase strategy</h2>
+    <div class="note" style="margin-bottom:12px;">
+      Efficiency order by $/ticket (best to worst): <b>3 coupons</b> → <b>1 / 5 coupons (tied)</b> → <b>10 coupons</b> → <b>15 coupons</b>.
+      The optimizer fills each tier in this order, up to its weekly cap, before moving to the next.
+    </div>
+    <div class="row">
+      <div>
+        <label>Mode</label>
+        <select id="optMode" style="width:100%; padding:8px; background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:4px; margin-bottom:10px;">
+          <option value="tickets">By number of tickets wanted</option>
+          <option value="budgetUSD">By available budget (USD)</option>
+        </select>
+      </div>
+      <div>
+        <label id="optValLabel">Number of tickets</label>
+        <input type="number" id="optValue" value="50">
+      </div>
+    </div>
+    <button class="btn" onclick="runOptimizer()">Calculate strategy</button>
+  </div>
+
+  <div class="card">
+    <h2>Recommended allocation</h2>
+    <table>
+      <tr><th>Bundle</th><th>Qty to buy</th><th>Tickets</th><th>Cost USD</th></tr>
+      <tr><td>3 coupons</td><td id="optB3">0</td><td id="optT3">0</td><td id="optU3">$0</td></tr>
+      <tr><td>5 coupons</td><td id="optB5">0</td><td id="optT5">0</td><td id="optU5">$0</td></tr>
+      <tr><td>1 coupon</td><td id="optB1">0</td><td id="optT1">0</td><td id="optU1">$0</td></tr>
+      <tr><td>10 coupons</td><td id="optB10">0</td><td id="optT10">0</td><td id="optU10">$0</td></tr>
+      <tr><td>15 coupons</td><td id="optB15">0</td><td id="optT15">0</td><td id="optU15">$0</td></tr>
+    </table>
+    <div class="stat" style="margin-top:10px;"><span><b>Total tickets obtained</b></span><span class="v good" id="optTotalTickets">0</span></div>
+    <div class="stat"><span>Total cost USD</span><span class="v orange" id="optTotalUSD">$0</span></div>
+    <div class="stat"><span>💎 supplied (bonus)</span><span class="v" id="optTotalDia">0</span></div>
+    <div class="stat"><span>Equivalent cost Goldbars</span><span class="v" id="optTotalGold">0</span></div>
+    <div class="note" id="optWarning"></div>
+    <button class="btn secondary" onclick="applyToPlanner()" style="margin-top:8px;">→ Apply this plan to Planner</button>
+  </div>
+</div>
+
+<!-- ================= TRACKER ================= -->
+<div class="panel" id="tracker">
+  <div class="card">
+    <h2>Add an event</h2>
+    <div class="row">
+      <div><label>Date / event name</label><input type="text" id="logName" placeholder="E.g. Lucky Discounter July"></div>
+      <div><label>Number of draws made</label><input type="number" id="logDraws" value="0"></div>
+    </div>
+    <div class="row">
+      <div><label>Badges obtained</label><input type="number" id="logBadges" value="0"></div>
+      <div><label>💎 spent (badges)</label><input type="number" id="logDiaBadges" value="0"></div>
+    </div>
+    <div class="row">
+      <div><label>💎 spent (speedups)</label><input type="number" id="logDiaSpeed" value="0"></div>
+      <div><label>$ spent (bundles, USD)</label><input type="number" id="logUSD" value="0"></div>
+    </div>
+    <button class="btn" onclick="addLog()">Save event</button>
+  </div>
+
+  <div class="card">
+    <h2>Cumulative total</h2>
+    <div class="stat"><span>Cumulative badges (tracker)</span><span class="v good" id="cumBadges">0</span></div>
+    <div class="stat"><span>💎 cumulative (badges)</span><span class="v" id="cumDiaBadges">0</span></div>
+    <div class="stat"><span>💎 cumulative (speedups)</span><span class="v" id="cumDiaSpeed">0</span></div>
+    <div class="stat"><span>$ cumulative spent (USD)</span><span class="v orange" id="cumUSD">$0</span></div>
+  </div>
+
+  <div class="card">
+    <h2>History</h2>
+    <div id="logList"></div>
+    <button class="btn danger" onclick="clearLogs()">Clear history</button>
+  </div>
+</div>
+
+<!-- ================= MODEL ================= -->
+<div class="panel" id="model">
+  <div class="card">
+    <h2>Probability per tier (draw)</h2>
+    <table>
+      <tr><th>Tier</th><th>Draw prob.</th><th>Badges/💎</th><th>💎/badge</th><th>EV badges/draw (×9 slots)</th><th>EV 💎 speedups/draw</th></tr>
+      <tr><td>90%</td><td>4%</td><td>3.333</td><td>0.30</td><td>5028</td><td>839</td></tr>
+      <tr><td>70%</td><td>8%</td><td>1.111</td><td>0.90</td><td>1938</td><td>2119</td></tr>
+      <tr><td>50%</td><td>13%</td><td>0.667</td><td>1.50</td><td>939</td><td>3167</td></tr>
+      <tr><td>30%</td><td>30%</td><td>0.476</td><td>2.10</td><td>891</td><td>2279</td></tr>
+      <tr><td>10%</td><td>45%</td><td>0.370</td><td>2.70</td><td>406</td><td>1895</td></tr>
+    </table>
+    <div class="note">Implicit base price: 3💎/badge at 0% discount. Each tier just applies its discount to that price. Confirmed consistent across all 5 tiers from your screenshots.</div>
+  </div>
+  <div class="card">
+    <h2>Weighted average EV / draw</h2>
+    <div class="stat"><span>Badges / draw</span><span class="v good">928.1</span></div>
+    <div class="stat"><span>💎 required (badges only) / draw</span><span class="v">1,437.4</span></div>
+    <div class="stat"><span>💎 required (speedups) / draw</span><span class="v">2,151.5</span></div>
+    <div class="stat"><span>💎 required total / draw</span><span class="v orange">3,589.0</span></div>
+  </div>
+  <div class="card">
+    <h2>Ticket bundles (content &amp; cost in 3 currencies)</h2>
+    <table>
+      <tr><th>Coupons</th><th>💎 included</th><th>Chests</th><th>Wood</th><th>Cost USD</th><th>Cost Goldbars</th><th>Limit</th></tr>
+      <tr><td>1</td><td>400</td><td>3</td><td>1.0K</td><td>$4</td><td>40</td><td>1/day</td></tr>
+      <tr><td>3</td><td>1000</td><td>8</td><td>1.0K</td><td>$10</td><td>100</td><td>1/day</td></tr>
+      <tr><td>5</td><td>2000</td><td>16</td><td>1.0K</td><td>$20</td><td>200</td><td>1/day</td></tr>
+      <tr><td>10</td><td>5000</td><td>40</td><td>1.0K</td><td>$50</td><td>500</td><td>1/day</td></tr>
+      <tr><td>15</td><td>10000</td><td>80</td><td>1.0K</td><td>$100</td><td>1000</td><td>3/day</td></tr>
+    </table>
+    <div class="note">Goldbars = 3rd possible payment currency (direct purchase via the web shop), fixed rate = 10 Goldbars per $1 USD. It's a cost, not a bonus received — 💎/Chests/Wood are the actual bundle content.</div>
+    <div class="note">17 free draws/event week (1 with no ticket + 2 offered in shop + 2/day × 7 days).</div>
+  </div>
+  <div class="card">
+    <h2>Real cost per ticket — efficiency ranking</h2>
+    <table>
+      <tr><th>Bundle</th><th>$/ticket USD</th><th>💎 included / ticket</th><th>Max/week</th><th>Rank</th></tr>
+      <tr><td>3 coupons</td><td>$3.33</td><td>333</td><td>21 tickets (7×3)</td><td style="color:var(--good)">① Best</td></tr>
+      <tr><td>1 coupon</td><td>$4.00</td><td>400</td><td>7 tickets (7×1)</td><td>② tied</td></tr>
+      <tr><td>5 coupons</td><td>$4.00</td><td>400</td><td>35 tickets (7×5)</td><td>② tied</td></tr>
+      <tr><td>10 coupons</td><td>$5.00</td><td>500</td><td>70 tickets (7×10)</td><td>④</td></tr>
+      <tr><td>15 coupons</td><td>$6.67</td><td>667</td><td>315 tickets (21×15)</td><td style="color:var(--danger)">⑤ Worst ratio</td></tr>
+    </table>
+    <div class="note">
+      <b>Note:</b> the bundle price is paid in real money (USD) or Goldbars — never in diamonds. The diamonds included in the bundle are just a bonus resource on top of the coupons, not a refund of the price. The ranking above is based purely on real cash cost per ticket. What varies between bundles is the number of coupons offered per dollar spent: the 3-coupon bundle ($10) is the most efficient (0.30 coupon/$), followed by 1 and 5 coupons (0.25 coupon/$ each), then 10 (0.20 coupon/$), then 15 (0.15 coupon/$ — the worst ratio, but the only one offering real volume thanks to its 3×/day limit).
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- MODEL CONSTANTS ----------
+const tiers = [
+  {name:'90', prob:0.04, badgesPerSlot:558.7, diaBadgesPerSlot:167.76, diaSpeedPerSlot:93.24},
+  {name:'70', prob:0.08, badgesPerSlot:215.3, diaBadgesPerSlot:193.77, diaSpeedPerSlot:235.44},
+  {name:'50', prob:0.13, badgesPerSlot:104.3, diaBadgesPerSlot:156.45, diaSpeedPerSlot:351.9},
+  {name:'30', prob:0.30, badgesPerSlot:99.0,  diaBadgesPerSlot:207.9,  diaSpeedPerSlot:253.26},
+  {name:'10', prob:0.45, badgesPerSlot:45.1,  diaBadgesPerSlot:121.77, diaSpeedPerSlot:210.6},
+];
+const SLOTS=9;
+let EV_BADGES=0, EV_DIA_BADGES=0, EV_DIA_SPEED=0;
+tiers.forEach(t=>{
+  EV_BADGES += t.prob * t.badgesPerSlot * SLOTS;
+  EV_DIA_BADGES += t.prob * t.diaBadgesPerSlot * SLOTS;
+  EV_DIA_SPEED += t.prob * t.diaSpeedPerSlot * SLOTS;
+});
+
+const BUNDLES = {
+  b1:{coupons:1, dia:400, usd:4, cad:5.99, goldbars:40},
+  b3:{coupons:3, dia:1000, usd:10, cad:13.99, goldbars:100},
+  b5:{coupons:5, dia:2000, usd:20, cad:27.99, goldbars:200},
+  b10:{coupons:10, dia:5000, usd:50, cad:69.99, goldbars:500},
+  b15:{coupons:15, dia:10000, usd:100, cad:139.99, goldbars:1000},
+};
+const FREE_DRAWS = 17;
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  };
+});
+
+// ---------- PLANNER ----------
+function calcPlanner(){
+  const target = parseFloat(document.getElementById('targetBadges').value)||0;
+  const current = parseFloat(document.getElementById('currentBadges').value)||0;
+  const buySpeed = document.getElementById('buySpeedups').checked;
+
+  const counts = {
+    b1: parseInt(document.getElementById('b1').value)||0,
+    b3: parseInt(document.getElementById('b3').value)||0,
+    b5: parseInt(document.getElementById('b5').value)||0,
+    b10: parseInt(document.getElementById('b10').value)||0,
+    b15: parseInt(document.getElementById('b15').value)||0,
+  };
+
+  let ticketsPaid=0, diaSupplied=0, usd=0, goldbars=0, coupons=0;
+  for(const k in counts){
+    const n=counts[k], b=BUNDLES[k];
+    ticketsPaid += n*b.coupons;
+    diaSupplied += n*b.dia;
+    usd += n*b.usd;
+    goldbars += n*b.goldbars;
+    coupons += n*b.coupons;
+  }
+
+  const totalDraws = FREE_DRAWS + ticketsPaid;
+  const badges = totalDraws * EV_BADGES;
+  const diaBadges = totalDraws * EV_DIA_BADGES;
+  const diaSpeed = buySpeed ? totalDraws * EV_DIA_SPEED : 0;
+  const diaTotal = diaBadges + diaSpeed;
+  const diaNet = Math.max(0, diaTotal - diaSupplied);
+
+  document.getElementById('outTicketsPaid').textContent = ticketsPaid;
+  document.getElementById('outTotalDraws').textContent = totalDraws;
+  document.getElementById('outBadges').textContent = Math.round(badges).toLocaleString();
+  document.getElementById('outDiaBadges').textContent = Math.round(diaBadges).toLocaleString();
+  document.getElementById('outDiaSpeed').textContent = Math.round(diaSpeed).toLocaleString();
+  document.getElementById('outDiaTotal').textContent = Math.round(diaTotal).toLocaleString();
+  document.getElementById('outDiaSupplied').textContent = Math.round(diaSupplied).toLocaleString();
+  document.getElementById('outDiaNet').textContent = Math.round(diaNet).toLocaleString();
+  document.getElementById('outCoupons').textContent = coupons;
+  document.getElementById('outGoldbars').textContent = goldbars.toLocaleString();
+  document.getElementById('outUSD').textContent = '$'+usd.toFixed(2);
+
+  const remaining = Math.max(0, target - current - badges);
+  const progressPct = Math.min(100, ((current+badges)/target)*100);
+  document.getElementById('progFill').style.width = progressPct.toFixed(1)+'%';
+  document.getElementById('outRemaining').textContent = Math.round(remaining).toLocaleString();
+
+  const weeksNeeded = badges>0 ? Math.ceil((target-current)/badges) : Infinity;
+  document.getElementById('outWeeksNeeded').textContent = isFinite(weeksNeeded)? weeksNeeded : '—';
+  document.getElementById('outTotalUSD').textContent = isFinite(weeksNeeded) ? '$'+(usd*weeksNeeded).toFixed(2) : '—';
+}
+document.querySelectorAll('#planner input').forEach(el=>el.addEventListener('input', calcPlanner));
+calcPlanner();
+
+// ---------- OPTIMIZER ----------
+// Priority order by $/ticket efficiency (best first), each with weekly cap in BUNDLE units
+const OPT_ORDER = [
+  {key:'b3', capBundles:7},
+  {key:'b5', capBundles:7},
+  {key:'b1', capBundles:7},
+  {key:'b10', capBundles:7},
+  {key:'b15', capBundles:21},
+];
+
+document.getElementById('optMode').addEventListener('change', function(){
+  const label = document.getElementById('optValLabel');
+  if(this.value==='tickets') label.textContent='Number of tickets wanted';
+  else label.textContent='Available budget (USD $)';
+});
+
+let lastOptResult = null;
+
+function runOptimizer(){
+  const mode = document.getElementById('optMode').value;
+  const val = parseFloat(document.getElementById('optValue').value)||0;
+
+  const result = {b1:0,b3:0,b5:0,b10:0,b15:0};
+  let remainingTickets = mode==='tickets' ? val : Infinity;
+  let remainingBudget = mode==='tickets' ? Infinity : val;
+  const currencyKey = 'usd';
+
+  for(const tier of OPT_ORDER){
+    const b = BUNDLES[tier.key];
+    let bundlesToBuy = 0;
+    for(let i=0; i<tier.capBundles; i++){
+      if(mode==='tickets'){
+        if(remainingTickets<=0) break;
+        bundlesToBuy++;
+        remainingTickets -= b.coupons;
+      } else {
+        const price = b[currencyKey];
+        if(remainingBudget < price) break;
+        bundlesToBuy++;
+        remainingBudget -= price;
+      }
+    }
+    result[tier.key]=bundlesToBuy;
+  }
+
+  // totals
+  let totalTickets=0, totalUSD=0, totalDia=0, totalGold=0;
+  for(const k in result){
+    const n=result[k], b=BUNDLES[k];
+    totalTickets += n*b.coupons;
+    totalUSD += n*b.usd;
+    totalDia += n*b.dia;
+    totalGold += n*b.goldbars;
+  }
+  document.getElementById('optB1').textContent=result.b1;
+  document.getElementById('optT1').textContent=result.b1*BUNDLES.b1.coupons;
+  document.getElementById('optU1').textContent='$'+(result.b1*BUNDLES.b1.usd).toFixed(2);
+
+  document.getElementById('optB3').textContent=result.b3;
+  document.getElementById('optT3').textContent=result.b3*BUNDLES.b3.coupons;
+  document.getElementById('optU3').textContent='$'+(result.b3*BUNDLES.b3.usd).toFixed(2);
+
+  document.getElementById('optB5').textContent=result.b5;
+  document.getElementById('optT5').textContent=result.b5*BUNDLES.b5.coupons;
+  document.getElementById('optU5').textContent='$'+(result.b5*BUNDLES.b5.usd).toFixed(2);
+
+  document.getElementById('optB10').textContent=result.b10;
+  document.getElementById('optT10').textContent=result.b10*BUNDLES.b10.coupons;
+  document.getElementById('optU10').textContent='$'+(result.b10*BUNDLES.b10.usd).toFixed(2);
+
+  document.getElementById('optB15').textContent=result.b15;
+  document.getElementById('optT15').textContent=result.b15*BUNDLES.b15.coupons;
+  document.getElementById('optU15').textContent='$'+(result.b15*BUNDLES.b15.usd).toFixed(2);
+
+  document.getElementById('optTotalTickets').textContent = totalTickets;
+  document.getElementById('optTotalUSD').textContent = '$'+totalUSD.toFixed(2);
+  document.getElementById('optTotalDia').textContent = totalDia.toLocaleString();
+  document.getElementById('optTotalGold').textContent = totalGold.toLocaleString();
+
+  const warn = document.getElementById('optWarning');
+  const maxTickets = OPT_ORDER.reduce((s,t)=>s+t.capBundles*BUNDLES[t.key].coupons,0);
+  if(mode==='tickets' && val>maxTickets){
+    warn.textContent = `⚠ Target exceeds the max buyable/week (${maxTickets} tickets). The plan above is the maximum possible.`;
+  } else {
+    warn.textContent='';
+  }
+
+  lastOptResult = result;
+}
+
+function applyToPlanner(){
+  if(!lastOptResult) return;
+  document.getElementById('b1').value = lastOptResult.b1;
+  document.getElementById('b3').value = lastOptResult.b3;
+  document.getElementById('b5').value = lastOptResult.b5;
+  document.getElementById('b10').value = lastOptResult.b10;
+  document.getElementById('b15').value = lastOptResult.b15;
+  calcPlanner();
+  document.querySelector('.tab[data-tab="planner"]').click();
+}
+runOptimizer();
+
+// ---------- SHARED: optimal bundle allocation for N tickets ----------
+const MAX_TICKETS_PER_WEEK = OPT_ORDER.reduce((s,t)=>s+t.capBundles*BUNDLES[t.key].coupons,0);
+
+function optimalAllocationForTickets(ticketsNeeded){
+  const result = {b1:0,b3:0,b5:0,b10:0,b15:0};
+  let remaining = ticketsNeeded;
+  for(const tier of OPT_ORDER){
+    const b = BUNDLES[tier.key];
+    let bundlesToBuy = 0;
+    for(let i=0;i<tier.capBundles;i++){
+      if(remaining<=0) break;
+      bundlesToBuy++;
+      remaining -= b.coupons;
+    }
+    result[tier.key]=bundlesToBuy;
+  }
+  let usd=0,goldbars=0,tickets=0;
+  for(const k in result){
+    const n=result[k], b=BUNDLES[k];
+    usd+=n*b.usd; goldbars+=n*b.goldbars; tickets+=n*b.coupons;
+  }
+  return {result, usd, goldbars, tickets, uncovered: Math.max(0,remaining)};
+}
+
+// ---------- FORECAST ----------
+function forecastRow(badgesPerEvent, includeSpeed){
+  const drawsNeeded = Math.ceil(badgesPerEvent / EV_BADGES);
+  const paidTickets = Math.max(0, drawsNeeded - FREE_DRAWS);
+  const diaBadges = drawsNeeded * EV_DIA_BADGES;
+  const diaSpeed = includeSpeed ? drawsNeeded * EV_DIA_SPEED : 0;
+  const diaTotal = diaBadges + diaSpeed;
+  const alloc = optimalAllocationForTickets(paidTickets);
+  const overCap = paidTickets > MAX_TICKETS_PER_WEEK;
+  return {badgesPerEvent, drawsNeeded, paidTickets, diaTotal, alloc, overCap};
+}
+
+function renderForecastRow(r){
+  const tr = document.createElement('tr');
+  if(r.overCap) tr.style.color = 'var(--danger)';
+  tr.innerHTML = `
+    <td>${Math.round(r.badgesPerEvent).toLocaleString()}</td>
+    <td>${r.drawsNeeded.toLocaleString()}</td>
+    <td>17</td>
+    <td>${r.paidTickets.toLocaleString()}${r.overCap?' ⚠':''}</td>
+    <td>${Math.round(r.diaTotal).toLocaleString()}</td>
+    <td>$${r.alloc.usd.toFixed(2)}</td>
+    <td>${r.alloc.goldbars.toLocaleString()}</td>
+  `;
+  return tr;
+}
+
+function maxCapacityRow(includeSpeed){
+  const drawsNeeded = FREE_DRAWS + MAX_TICKETS_PER_WEEK; // 17 + 448 = 465
+  const badgesPerEvent = drawsNeeded * EV_BADGES;
+  const paidTickets = MAX_TICKETS_PER_WEEK;
+  const alloc = optimalAllocationForTickets(paidTickets);
+  const diaTotal = drawsNeeded * (EV_DIA_BADGES + (includeSpeed?EV_DIA_SPEED:0));
+  return {badgesPerEvent, drawsNeeded, paidTickets, diaTotal, alloc, overCap:false};
+}
+
+function runForecast(){
+  const custom = parseFloat(document.getElementById('fcCustom').value)||0;
+  const includeSpeed = document.getElementById('fcIncludeSpeed').checked;
+  const presets = [25000,50000,100000,200000];
+
+  const body = document.getElementById('fcBody');
+  body.innerHTML='';
+  // free draws only, baseline
+  const freeOnly = renderForecastRow(forecastRow(FREE_DRAWS*EV_BADGES, includeSpeed));
+  freeOnly.style.opacity='0.7';
+  body.appendChild(freeOnly);
+
+  presets.forEach(p=>{
+    body.appendChild(renderForecastRow(forecastRow(p, includeSpeed)));
+  });
+
+  // MAX row = absolute ceiling of what's buyable in one event week
+  const m = maxCapacityRow(includeSpeed);
+  const trMax = renderForecastRow(m);
+  trMax.style.color = 'var(--good)';
+  trMax.children[0].innerHTML = 'MAX (~'+Math.round(m.badgesPerEvent).toLocaleString()+')';
+  body.appendChild(trMax);
+
+  if(custom>0){
+    const tr = renderForecastRow(forecastRow(custom, includeSpeed));
+    tr.style.borderTop = '2px solid var(--cyan)';
+    body.appendChild(tr);
+  }
+}
+runForecast();
+
+// ---------- TRACKER ----------
+async function loadLogs(){
+  try{
+    const res = await window.storage.get('lucky_discounter_logs');
+    return res ? JSON.parse(res.value) : [];
+  }catch(e){ return []; }
+}
+async function saveLogs(logs){
+  try{ await window.storage.set('lucky_discounter_logs', JSON.stringify(logs)); }
+  catch(e){ console.error('save failed', e); }
+}
+async function renderLogs(){
+  const logs = await loadLogs();
+  const list = document.getElementById('logList');
+  list.innerHTML='';
+  let cumBadges=0, cumDiaBadges=0, cumDiaSpeed=0, cumUSD=0;
+  logs.slice().reverse().forEach((l)=>{
+    const div=document.createElement('div');
+    div.className='log-entry';
+    div.innerHTML = `<div class="top"><b>${l.name||'Event'}</b><span>${l.draws} draws</span></div>
+      <span class="pill">Badges: ${Number(l.badges).toLocaleString()}</span>
+      <span class="pill">💎 badges: ${Number(l.diaBadges).toLocaleString()}</span>
+      <span class="pill">💎 speed: ${Number(l.diaSpeed).toLocaleString()}</span>
+      <span class="pill">$${l.usd}</span>`;
+    list.appendChild(div);
+  });
+  logs.forEach(l=>{
+    cumBadges+=Number(l.badges)||0;
+    cumDiaBadges+=Number(l.diaBadges)||0;
+    cumDiaSpeed+=Number(l.diaSpeed)||0;
+    cumUSD+=Number(l.usd)||0;
+  });
+  document.getElementById('cumBadges').textContent = cumBadges.toLocaleString();
+  document.getElementById('cumDiaBadges').textContent = cumDiaBadges.toLocaleString();
+  document.getElementById('cumDiaSpeed').textContent = cumDiaSpeed.toLocaleString();
+  document.getElementById('cumUSD').textContent = '$'+cumUSD.toFixed(2);
+}
+async function addLog(){
+  const entry = {
+    name: document.getElementById('logName').value || 'Event',
+    draws: parseInt(document.getElementById('logDraws').value)||0,
+    badges: parseInt(document.getElementById('logBadges').value)||0,
+    diaBadges: parseInt(document.getElementById('logDiaBadges').value)||0,
+    diaSpeed: parseInt(document.getElementById('logDiaSpeed').value)||0,
+    usd: parseFloat(document.getElementById('logUSD').value)||0,
+    ts: Date.now()
+  };
+  const logs = await loadLogs();
+  logs.push(entry);
+  await saveLogs(logs);
+  renderLogs();
+  ['logName','logDraws','logBadges','logDiaBadges','logDiaSpeed','logUSD'].forEach(id=>document.getElementById(id).value='');
+}
+async function clearLogs(){
+  if(!confirm('Clear all history?')) return;
+  await saveLogs([]);
+  renderLogs();
+}
+renderLogs();
+</script>
+
+<div style="text-align:center;margin-top:32px;">
+  <a href="weekly_events.html" style="color:#00FFFF;text-decoration:none;font-size:13px;border:1px solid #00FFFF;padding:7px 16px;border-radius:4px;display:inline-block;">← Back to Events</a>
+</div>
+
+</div><!-- end page-content -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="c6470648-98bf-4803-9393-c08dadc1841a"></script>
+</body>
+</html>
