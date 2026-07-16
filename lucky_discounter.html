@@ -22,25 +22,7 @@
     font-family:Arial,sans-serif;
     margin:0; padding:0;
   }
-  /* TOP BAR */
-  .top-bar{
-    background:#0a0a0a; border-bottom:1px solid #222;
-    padding:12px 16px; display:flex; align-items:center;
-    justify-content:space-between; position:sticky; top:0; z-index:100;
-  }
-  .top-bar a{color:var(--cyan); text-decoration:none; font-size:13px; border:1px solid var(--cyan); padding:4px 12px; border-radius:4px;}
-  .top-bar h1{font-size:16px; color:var(--cyan); letter-spacing:2px; text-transform:uppercase; margin:0;}
-  /* BANNER */
-  .banner{width:100%; max-height:160px; overflow:hidden; position:relative;}
-  .banner img.bg{width:100%; height:160px; object-fit:cover; object-position:center; display:block;}
-  .banner .overlay{position:absolute;inset:0;background:linear-gradient(to bottom,#0D0D0D22,#0D0D0D);}
-  .banner .banner-text{position:absolute;bottom:14px;left:20px;display:flex;align-items:center;gap:12px;}
-  .banner .banner-text img.ticket{height:44px;object-fit:contain;filter:drop-shadow(0 2px 8px #000a);}
-  .banner .banner-text h2{font-size:clamp(1.1rem,3vw,1.6rem);color:var(--cyan);letter-spacing:2px;text-transform:uppercase;margin:0;}
-  .banner .banner-text .btag{font-size:10px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:3px;}
-  /* CONTENT WRAP */
-  .page-content{padding:20px 16px 48px; max-width:900px; margin:0 auto;}
-  h1{display:none;}
+  h1{ display:none; }
   .sub{color:var(--dim); font-size:12px; margin-bottom:20px;}
   .tabs{display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--border);}
   .tab{
@@ -108,18 +90,35 @@
   .note{font-size:11px; color:var(--dim); font-style:italic; margin-top:6px;}
   .checklabel{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); margin-bottom:10px;}
   .checklabel input{width:auto; margin:0;}
+
+  /* TOP BAR */
+  .top-bar{
+    background:#0a0a0a; border-bottom:1px solid #222;
+    padding:12px 16px; display:flex; align-items:center;
+    justify-content:space-between; position:sticky; top:0; z-index:100;
+  }
+  .top-bar a{ color:var(--cyan); text-decoration:none; font-size:13px; border:1px solid var(--cyan); padding:4px 12px; border-radius:4px; }
+  .top-bar-title{ font-size:16px; color:var(--cyan); letter-spacing:2px; text-transform:uppercase; margin:0; }
+  /* BANNER */
+  .banner{ width:100%; max-height:160px; overflow:hidden; position:relative; }
+  .banner img.bg{ width:100%; height:160px; object-fit:cover; object-position:center; display:block; }
+  .banner .overlay{ position:absolute; inset:0; background:linear-gradient(to bottom,#0D0D0D22,#0D0D0D); }
+  .banner .banner-text{ position:absolute; bottom:14px; left:20px; display:flex; align-items:center; gap:12px; }
+  .banner .banner-text img.ticket{ height:44px; object-fit:contain; filter:drop-shadow(0 2px 8px #000a); }
+  .banner .banner-text h2{ font-size:clamp(1.1rem,3vw,1.6rem); color:var(--cyan); letter-spacing:2px; text-transform:uppercase; margin:0; }
+  .banner .banner-text .btag{ font-size:10px; color:var(--orange); letter-spacing:2px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  /* CONTENT */
+  .page-content{ padding:16px; max-width:1100px; margin:0 auto; }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div class="top-bar">
   <a href="weekly_events.html">← Events</a>
-  <h1>Lucky Discounter</h1>
+  <span class="top-bar-title">Lucky Discounter</span>
   <div style="width:80px"></div>
 </div>
 
-<!-- BANNER -->
 <div class="banner">
   <img class="bg" src="lucky_discounter_bg.png" alt="Lucky Discounter">
   <div class="overlay"></div>
@@ -145,42 +144,55 @@
 
 <!-- ================= PLANNER ================= -->
 <div class="panel active" id="planner">
-  <div class="grid2">
-    <div class="card">
-      <h2>Goal</h2>
-      <label>Target badges (total, e.g. 1,488,100)</label>
-      <input type="number" id="targetBadges" value="0">
-      <label>Badges already on hand (e.g. 16.4K etc.)</label>
-      <input type="number" id="currentBadges" value="0">
-      <div class="checklabel">
+  <div class="card">
+    <h2>What do you want to plan?</h2>
+    <div class="row">
+      <div>
+        <label>Mode</label>
+        <select id="pMode" style="width:100%; padding:8px; background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:4px; margin-bottom:10px;">
+          <option value="badges">I want X badges → show me the purchase &amp; diamonds needed</option>
+          <option value="budget">I have a $ budget → show me the purchase &amp; badges expected</option>
+        </select>
+      </div>
+      <div>
+        <label id="pValueLabel">Badges wanted</label>
+        <input type="number" id="pValue" value="100000">
+      </div>
+    </div>
+    <div class="row">
+      <div class="checklabel" style="margin-bottom:0;">
         <input type="checkbox" id="buySpeedups" checked>
         <span>I also buy every speedup that appears</span>
       </div>
-    </div>
-    <div class="card">
-      <h2>Paid tickets per event week (7 days)</h2>
-      <div class="row">
-        <div><label>Bundle 1 coupon ($4)</label><input type="number" id="b1" value="0" max="7"></div>
-        <div><label>Bundle 3 coupons ($10)</label><input type="number" id="b3" value="0" max="7"></div>
+      <div style="text-align:right;">
+        <button class="btn secondary" onclick="resetPlanner()">↺ Reset</button>
       </div>
-      <div class="row">
-        <div><label>Bundle 5 coupons ($20)</label><input type="number" id="b5" value="0" max="7"></div>
-        <div><label>Bundle 10 coupons ($50)</label><input type="number" id="b10" value="0" max="7"></div>
-      </div>
-      <label>Bundle 15 coupons — Lucky Coupon ($100, max 3/day)</label>
-      <input type="number" id="b15" value="0" max="21">
-      <div class="note">Event limits (7 days): 7× each of bundle 1/3/5/10 per day max, 21× (3/day) for the 15-coupon bundle.</div>
     </div>
+    <div class="note">Everything below updates automatically as you type. Uses the optimal bundle-buying strategy (best $/ticket first) up to the weekly caps (max 448 paid tickets/week).</div>
   </div>
 
   <div class="card">
-    <h2>Result — Per event week (draws)</h2>
+    <h2>Recommended purchase (this event week)</h2>
+    <table>
+      <tr><th>Bundle</th><th>Qty to buy</th><th>Tickets</th><th>Cost USD</th></tr>
+      <tr><td>3 coupons</td><td id="pB3">0</td><td id="pT3">0</td><td id="pU3">$0</td></tr>
+      <tr><td>5 coupons</td><td id="pB5">0</td><td id="pT5">0</td><td id="pU5">$0</td></tr>
+      <tr><td>1 coupon</td><td id="pB1">0</td><td id="pT1">0</td><td id="pU1">$0</td></tr>
+      <tr><td>10 coupons</td><td id="pB10">0</td><td id="pT10">0</td><td id="pU10">$0</td></tr>
+      <tr><td>15 coupons</td><td id="pB15">0</td><td id="pT15">0</td><td id="pU15">$0</td></tr>
+      <tr class="grand-row" style="border-top:2px solid var(--cyan);"><td><b>Total</b></td><td></td><td id="pTTotal"><b>0</b></td><td id="pUTotal"><b>$0</b></td></tr>
+    </table>
+    <div class="note" id="pWarning"></div>
+  </div>
+
+  <div class="card">
+    <h2>Result</h2>
     <div class="grid2">
       <div>
         <div class="stat"><span>Free draws</span><span class="v">17</span></div>
         <div class="stat"><span>Purchased tickets (bundles)</span><span class="v orange" id="outTicketsPaid">0</span></div>
         <div class="stat"><span><b>Total draws</b></span><span class="v good" id="outTotalDraws">17</span></div>
-        <div class="stat"><span>Expected badges (EV)</span><span class="v" id="outBadges">0</span></div>
+        <div class="stat"><span><b>Expected badges (EV)</b></span><span class="v good" id="outBadges">0</span></div>
         <div class="stat"><span>💎 required — badges only</span><span class="v orange" id="outDiaBadges">0</span></div>
         <div class="stat"><span>💎 required — speedups</span><span class="v orange" id="outDiaSpeed">0</span></div>
         <div class="stat"><span><b>💎 required total</b></span><span class="v danger" id="outDiaTotal">0</span></div>
@@ -190,18 +202,22 @@
         <div class="stat"><span><b>💎 net to draw from your reserve</b></span><span class="v danger" id="outDiaNet">0</span></div>
         <div class="stat"><span>Coupons supplied by bundles</span><span class="v" id="outCoupons">0</span></div>
         <div class="stat"><span>Equivalent cost (Goldbars)</span><span class="v orange" id="outGoldbars">0</span></div>
-        <div class="stat"><span>Cost (USD)</span><span class="v orange" id="outUSD">$0</span></div>
+        <div class="stat"><span><b>Total cost (USD)</b></span><span class="v good" id="outUSD">$0</span></div>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <h2>Progress toward the goal</h2>
+    <h2>Progress toward a long-term goal (optional)</h2>
+    <div class="row">
+      <div><label>Long-term badge goal (e.g. 1,150,000)</label><input type="number" id="targetBadges" value="1150000"></div>
+      <div><label>Badges already on hand</label><input type="number" id="currentBadges" value="0"></div>
+    </div>
     <div class="progressbar"><div class="progressfill" id="progFill" style="width:0%"></div></div>
     <div class="stat"><span>Badges remaining after this week</span><span class="v" id="outRemaining">0</span></div>
     <div class="stat"><span>Number of event weeks (at this rate) to finish the goal</span><span class="v good" id="outWeeksNeeded">0</span></div>
     <div class="stat"><span>Estimated total cost to reach the goal (USD)</span><span class="v danger" id="outTotalUSD">$0</span></div>
-    <div class="note">This calculation assumes you repeat exactly this purchase plan every event week until the goal is reached.</div>
+    <div class="note">Assumes you repeat exactly this same purchase plan every event week until the goal is reached.</div>
   </div>
 </div>
 
@@ -401,29 +417,73 @@ document.querySelectorAll('.tab').forEach(tab=>{
   };
 });
 
-// ---------- PLANNER ----------
+// ---------- PLANNER (unified reactive) ----------
+function updatePValueLabel(){
+  const mode = document.getElementById('pMode').value;
+  document.getElementById('pValueLabel').textContent = mode==='badges' ? 'Badges wanted' : 'Budget available (USD $)';
+}
+document.getElementById('pMode').addEventListener('change', ()=>{ updatePValueLabel(); calcPlanner(); });
+
+function renderPlannerBundleTable(result){
+  document.getElementById('pB1').textContent = result.b1;
+  document.getElementById('pT1').textContent = result.b1*BUNDLES.b1.coupons;
+  document.getElementById('pU1').textContent = '$'+(result.b1*BUNDLES.b1.usd).toFixed(2);
+
+  document.getElementById('pB3').textContent = result.b3;
+  document.getElementById('pT3').textContent = result.b3*BUNDLES.b3.coupons;
+  document.getElementById('pU3').textContent = '$'+(result.b3*BUNDLES.b3.usd).toFixed(2);
+
+  document.getElementById('pB5').textContent = result.b5;
+  document.getElementById('pT5').textContent = result.b5*BUNDLES.b5.coupons;
+  document.getElementById('pU5').textContent = '$'+(result.b5*BUNDLES.b5.usd).toFixed(2);
+
+  document.getElementById('pB10').textContent = result.b10;
+  document.getElementById('pT10').textContent = result.b10*BUNDLES.b10.coupons;
+  document.getElementById('pU10').textContent = '$'+(result.b10*BUNDLES.b10.usd).toFixed(2);
+
+  document.getElementById('pB15').textContent = result.b15;
+  document.getElementById('pT15').textContent = result.b15*BUNDLES.b15.coupons;
+  document.getElementById('pU15').textContent = '$'+(result.b15*BUNDLES.b15.usd).toFixed(2);
+
+  let totalTickets=0, totalUSD=0;
+  for(const k in result){
+    totalTickets += result[k]*BUNDLES[k].coupons;
+    totalUSD += result[k]*BUNDLES[k].usd;
+  }
+  document.getElementById('pTTotal').innerHTML = '<b>'+totalTickets+'</b>';
+  document.getElementById('pUTotal').innerHTML = '<b>$'+totalUSD.toFixed(2)+'</b>';
+}
+
 function calcPlanner(){
   const target = parseFloat(document.getElementById('targetBadges').value)||0;
   const current = parseFloat(document.getElementById('currentBadges').value)||0;
   const buySpeed = document.getElementById('buySpeedups').checked;
+  const mode = document.getElementById('pMode').value;
+  const value = parseFloat(document.getElementById('pValue').value)||0;
 
-  const counts = {
-    b1: parseInt(document.getElementById('b1').value)||0,
-    b3: parseInt(document.getElementById('b3').value)||0,
-    b5: parseInt(document.getElementById('b5').value)||0,
-    b10: parseInt(document.getElementById('b10').value)||0,
-    b15: parseInt(document.getElementById('b15').value)||0,
-  };
-
-  let ticketsPaid=0, diaSupplied=0, usd=0, goldbars=0, coupons=0;
-  for(const k in counts){
-    const n=counts[k], b=BUNDLES[k];
-    ticketsPaid += n*b.coupons;
-    diaSupplied += n*b.dia;
-    usd += n*b.usd;
-    goldbars += n*b.goldbars;
-    coupons += n*b.coupons;
+  let alloc, paidTicketsRequested = 0;
+  if(mode==='badges'){
+    const drawsNeeded = Math.ceil(value / EV_BADGES);
+    paidTicketsRequested = Math.max(0, drawsNeeded - FREE_DRAWS);
+    alloc = optimalAllocationForTickets(paidTicketsRequested);
+  } else {
+    alloc = optimalAllocationForBudget(value);
   }
+
+  renderPlannerBundleTable(alloc.result);
+
+  const warn = document.getElementById('pWarning');
+  if(mode==='badges' && paidTicketsRequested > MAX_TICKETS_PER_WEEK){
+    warn.textContent = `⚠ That many badges would need more paid tickets than the weekly max (${MAX_TICKETS_PER_WEEK}). Showing the maximum possible plan instead.`;
+  } else {
+    warn.textContent = '';
+  }
+
+  const ticketsPaid = alloc.tickets;
+  const diaSupplied = alloc.dia;
+  const usd = alloc.usd;
+  const goldbars = alloc.goldbars;
+  const coupons = alloc.tickets;
 
   const totalDraws = FREE_DRAWS + ticketsPaid;
   const badges = totalDraws * EV_BADGES;
@@ -445,7 +505,7 @@ function calcPlanner(){
   document.getElementById('outUSD').textContent = '$'+usd.toFixed(2);
 
   const remaining = Math.max(0, target - current - badges);
-  const progressPct = Math.min(100, ((current+badges)/target)*100);
+  const progressPct = target>0 ? Math.min(100, ((current+badges)/target)*100) : 0;
   document.getElementById('progFill').style.width = progressPct.toFixed(1)+'%';
   document.getElementById('outRemaining').textContent = Math.round(remaining).toLocaleString();
 
@@ -453,8 +513,20 @@ function calcPlanner(){
   document.getElementById('outWeeksNeeded').textContent = isFinite(weeksNeeded)? weeksNeeded : '—';
   document.getElementById('outTotalUSD').textContent = isFinite(weeksNeeded) ? '$'+(usd*weeksNeeded).toFixed(2) : '—';
 }
+
+function resetPlanner(){
+  document.getElementById('pMode').value = 'badges';
+  document.getElementById('pValue').value = 100000;
+  document.getElementById('buySpeedups').checked = true;
+  document.getElementById('targetBadges').value = 1150000;
+  document.getElementById('currentBadges').value = 0;
+  updatePValueLabel();
+  calcPlanner();
+}
+
 document.querySelectorAll('#planner input').forEach(el=>el.addEventListener('input', calcPlanner));
-calcPlanner();
+updatePValueLabel();
+// initial calcPlanner() call moved to bottom of script (needs OPT_ORDER/BUNDLES fully defined first)
 
 // ---------- OPTIMIZER ----------
 // Priority order by $/ticket efficiency (best first), each with weekly cap in BUNDLE units
@@ -574,12 +646,33 @@ function optimalAllocationForTickets(ticketsNeeded){
     }
     result[tier.key]=bundlesToBuy;
   }
-  let usd=0,goldbars=0,tickets=0;
+  let usd=0,goldbars=0,tickets=0,dia=0;
   for(const k in result){
     const n=result[k], b=BUNDLES[k];
-    usd+=n*b.usd; goldbars+=n*b.goldbars; tickets+=n*b.coupons;
+    usd+=n*b.usd; goldbars+=n*b.goldbars; tickets+=n*b.coupons; dia+=n*b.dia;
   }
-  return {result, usd, goldbars, tickets, uncovered: Math.max(0,remaining)};
+  return {result, usd, goldbars, tickets, dia, uncovered: Math.max(0,remaining)};
+}
+
+function optimalAllocationForBudget(budgetUSD){
+  const result = {b1:0,b3:0,b5:0,b10:0,b15:0};
+  let remainingBudget = budgetUSD;
+  for(const tier of OPT_ORDER){
+    const b = BUNDLES[tier.key];
+    let bundlesToBuy = 0;
+    for(let i=0;i<tier.capBundles;i++){
+      if(remainingBudget < b.usd) break;
+      bundlesToBuy++;
+      remainingBudget -= b.usd;
+    }
+    result[tier.key]=bundlesToBuy;
+  }
+  let usd=0,goldbars=0,tickets=0,dia=0;
+  for(const k in result){
+    const n=result[k], b=BUNDLES[k];
+    usd+=n*b.usd; goldbars+=n*b.goldbars; tickets+=n*b.coupons; dia+=n*b.dia;
+  }
+  return {result, usd, goldbars, tickets, dia, remainingBudget};
 }
 
 // ---------- FORECAST ----------
@@ -708,9 +801,12 @@ async function clearLogs(){
   renderLogs();
 }
 renderLogs();
+
+// Initial render of the unified Planner (must run after OPT_ORDER/BUNDLES/optimalAllocation* are defined)
+calcPlanner();
 </script>
 
-<div style="text-align:center;margin-top:32px;">
+<div style="text-align:center;margin-top:32px;padding-bottom:32px;">
   <a href="weekly_events.html" style="color:#00FFFF;text-decoration:none;font-size:13px;border:1px solid #00FFFF;padding:7px 16px;border-radius:4px;display:inline-block;">← Back to Events</a>
 </div>
 
